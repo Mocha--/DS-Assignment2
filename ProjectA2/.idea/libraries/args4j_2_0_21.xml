@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="args4j-2.0.21">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../Part2/partA2_java/lib/args4j-2.0.21.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Part2/partA2_java/lib/hamcrest-core-1.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Part2/partA2_java/lib/json_simple-1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Part2/partA2_java/lib/junit-4.12.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Part2/partA2_java/lib/log4j-1.2.17.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
