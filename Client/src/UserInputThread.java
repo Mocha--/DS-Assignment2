@@ -117,6 +117,16 @@ public class UserInputThread extends Thread {
 					return null;
 				}
 				return Protocol.kick(parts[1], Integer.parseInt(parts[2]), parts[3]);
+			} else if(parts[0].equals("register")){
+				if(parts.length != 3){
+					return null;
+				}
+				return Protocol.register(parts[1], parts[2]);
+			} else if(parts[0].equals("login")){
+				if(parts.length != 3){
+					return null;
+				}
+				return Protocol.login(parts[1], parts[2]);
 			}
 			else{
 				return null;

@@ -1,8 +1,17 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.sound.sampled.Line;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kohsuke.args4j.CmdLineException;
@@ -55,14 +64,40 @@ public class Server {
 			e.printStackTrace();
 		}
 		
-		this.serverSocket = new ServerSocket(this.port);
+		System.setProperty("javax.net.ssl.keyStore", "../mochaServerKeyStore");
+		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+		
+		ServerSocketFactory factory = SSLServerSocketFactory.getDefault();
+		this.serverSocket = factory.createServerSocket(this.port);
 		this.log = new Log();
 		Room mainHall = new Room("MainHall", null);
 		
+		loadUsersFromFile("../users.json");
+		
 		while(true){
-			//this.log.write("waiting for connections");
+			this.log.write("waiting for connections");
 			Socket socket = this.serverSocket.accept();
-			SessionThread sessionThread = new SessionThread(new MySocket(socket), mainHall);
+			Connecter connecter = new Guest();
+			SessionThread sessionThread = new SessionThread(connecter, new MySocket(socket));
+		}
+	}
+	
+	public void loadUsersFromFile(String path) throws IOException, JSONException{
+		File file = new File(path);
+		FileReader fr = new FileReader(file);
+		BufferedReader br = new BufferedReader(fr);
+		String content = "";
+		String line = br.readLine();
+		while(line != null){
+			content += line;
+			line = br.readLine();
+		}
+		JSONArray users = new JSONArray(content);
+		for( int i = 0 ; i <= users.length() - 1 ; i++){
+			JSONObject user = new JSONObject(users.get(i).toString());
+			String id = user.getString("id");
+			String password = user.getString("password");
+			User.register(id, password);
 		}
 	}
 	
@@ -73,6 +108,7 @@ public class Server {
 	 * @throws JSONException
 	 */
 	public static void main(String[] args) throws IOException, JSONException {
+		
 		Server server = new Server(args);
 	}
 }

@@ -8,9 +8,9 @@ import java.util.Date;
 public class Black {
 	
 	/**
-	 * the user's sesstion thread
+	 * the user's session thread
 	 */
-	public SessionThread sessionThread;
+	public Connecter connecter;
 
 	/**
 	 * the time point when the user can join again
@@ -19,12 +19,12 @@ public class Black {
 	
 	/**
 	 *
-	 * @param  sessionThread      [the user's sesstion thread]
+	 * @param  sessionThread      [the user's session thread]
 	 * @param  allowJoinTimePoint [the time point when the user can join again]
 	 * @return                    [constructor]
 	 */
-	public Black(SessionThread sessionThread, Date allowJoinTimePoint){
-		this.sessionThread = sessionThread;
+	public Black(Connecter connecter, Date allowJoinTimePoint){
+		this.connecter = connecter;
 		this.allowJoinTimePoint = allowJoinTimePoint;
 	}
 	

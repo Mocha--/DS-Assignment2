@@ -53,7 +53,7 @@ public class Room {
 	 * because no matter how the user id changes, the tread
 	 * does not change.
 	 */
-	public SessionThread owner;
+	public Connecter owner;
 	
 	/**
 	 * message queue
@@ -63,7 +63,7 @@ public class Room {
 	/**
 	 * user threads in this room
 	 */
-	public ArrayList<SessionThread> sessionThreads;
+	public ArrayList<Connecter> connecters;
 	
 	/**
 	 * black list which can prevent user's joining
@@ -82,12 +82,12 @@ public class Room {
 	 * @param  sessionThread owner's thread
 	 * @return               
 	 */
-	public Room(String id, SessionThread sessionThread){
+	public Room(String id, Connecter connecter){
 		this.id = id;
-		this.owner = sessionThread;
+		this.owner = connecter;
 		
 		this.messages = new LinkedList<JSONObject>();
-		this.sessionThreads = new ArrayList<SessionThread>();
+		this.connecters = new ArrayList<Connecter>();
 		this.broadcastThread = new BroadcastThread(this);
 		this.blackList = new ArrayList<Black>();
 		
@@ -98,18 +98,18 @@ public class Room {
 	 * add a user into this room
 	 * @param thread  the new user
 	 */
-	public void addThread(SessionThread thread){
-		this.sessionThreads.add(thread);
-		thread.room = this;
+	public void addConnecter(Connecter connecter){
+		this.connecters.add(connecter);
+		connecter.setRoom(this);
 	}
 	
 	/**
 	 * remove a user from this room
 	 * @param thread the user's thread
 	 */
-	public void removeThread(SessionThread thread){
-		this.sessionThreads.remove(thread);
-		thread.room = null;
+	public void removeConnecter(Connecter connecter){
+		this.connecters.remove(connecter);
+		connecter.clearRoom();
 	}
 	
 	/**
@@ -120,24 +120,12 @@ public class Room {
 		this.messages.addLast(msg);
 	}
 	
-	/**
-	 * is the user which want to join this room in the black list
-	 * @param  sessionThread user's thread
-	 * @return               true if in the black list, not if not in the black list
-	 */
-	public boolean isInBlackList(SessionThread sessionThread){
-		for( int i = 0 ; i <= this.blackList.size() - 1 ; i++){
-			Black black = this.blackList.get(i);
-			if(black.sessionThread != sessionThread){
-				continue;
-			}
-			else if(black.sessionThread == sessionThread && black.isAllowJoin()){
-				this.blackList.remove(i);
-			} else {
-				return true;
-			}
+	public boolean isToBeDeleted(){
+		if(this.owner == null && this.connecters.size() == 0){
+			return true;
+		} else {
+			return false;
 		}
-		return false;
 	}
 	
 }

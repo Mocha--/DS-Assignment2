@@ -34,7 +34,7 @@ public class Protocol {
 		for(Room room: Room.rooms){
 			JSONObject roomInfo = new JSONObject();
 			roomInfo.put("roomid", room.id);
-			roomInfo.put("count", room.sessionThreads.size());
+			roomInfo.put("count", room.connecters.size());
 			roomInfos.add(roomInfo);
 		}
 		
@@ -53,8 +53,8 @@ public class Protocol {
 		roomContents.put("type", "roomcontents");
 		roomContents.put("roomid", room.id);
 		ArrayList<String> identities = new ArrayList<String>();
-		for (SessionThread sessionThread : room.sessionThreads) {
-			identities.add(sessionThread.id);
+		for (Connecter connecter: room.connecters) {
+			identities.add(connecter.id);
 		}
 		roomContents.put("identities", identities);
 		if(room.owner == null){
@@ -97,6 +97,22 @@ public class Protocol {
 		message.put("content", content);
 		
 		return message;
+	}
+	
+	public static JSONObject newUser(String id) throws JSONException{
+		JSONObject newUser = new JSONObject();
+		newUser.put("type", "newUser");
+		newUser.put("id", id);
+		
+		return newUser;
+	}
+	
+	public static JSONObject authenticated(String id, String roomId) throws JSONException{
+		JSONObject authenticated = new JSONObject();
+		authenticated.put("type", "authenticated");
+		authenticated.put("id", id);
+		authenticated.put("roomId", roomId);
+		return authenticated;
 	}
 	
 }

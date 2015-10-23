@@ -32,7 +32,11 @@ public class ClientRecvThread extends Thread{
 	public void run(){
 		try {
 			while(true){
-				JSONObject recv = this.client.socket.recvMsg();
+				JSONObject recv = null;
+				recv = this.client.socket.recvMsg();
+				if(recv == null){
+					break;
+				}
 				this.handler(recv);
 				if(this.client.interrupt){
 					break;
@@ -59,13 +63,14 @@ public class ClientRecvThread extends Thread{
 	 * @throws IOException
 	 */
 	private void handler(JSONObject recv) throws JSONException, IOException{
-		//System.out.println(recv);
+		System.out.println(recv);
 		
 		this.handleNewIdentity(recv);
 		this.handlerRoomList(recv);
 		this.handleRoomChange(recv);
 		this.handleMessage(recv);
 		this.handleRoomContents(recv);	
+		this.handleAuthenticated(recv);
 		
 		if(this.client.isGetFirstResponse < 4){
 			this.client.isGetFirstResponse += 1;
@@ -174,7 +179,17 @@ public class ClientRecvThread extends Thread{
 	 */
 	private void handleMessage(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("message")){
+			System.out.println(recv);
 			this.log.write(recv.getString("identity") + " : " + recv.getString("content"));
+		}
+	}
+	
+	private void handleAuthenticated(JSONObject recv) throws JSONException{
+		if(recv.getString("type").equals("authenticated")){
+			String id = recv.getString("id");
+			String roomId = recv.getString("roomId");
+			this.client.id = id;
+			this.client.roomId = roomId;
 		}
 	}
 	

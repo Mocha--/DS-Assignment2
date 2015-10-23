@@ -23,12 +23,11 @@ public class BroadcastToAllThread extends Thread {
 	 */
 	public void run(){
 		while(true){
-			
 			if(Server.messages.size() > 0){
 				JSONObject message = Server.messages.getFirst();
 				
-				for (SessionThread thread: SessionThread.sessionThreads) {
-					thread.socket.sendMsg(message);
+				for (Connecter connecter: Connecter.connecters) {
+					connecter.sendMsg(message);
 				}
 				
 				Server.messages.removeFirst();

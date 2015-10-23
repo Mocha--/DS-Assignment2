@@ -1,8 +1,4 @@
 import java.io.IOException;
-import java.nio.channels.SelectableChannel;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,80 +6,13 @@ import org.json.JSONObject;
  * thread which is created when a new client connected
  */
 public class SessionThread extends Thread {
-	
 	/**
-	 * all session threads. static variable.
+	 * connecter
 	 */
-	public static ArrayList<SessionThread> sessionThreads = new ArrayList<SessionThread>();
+	public Connecter connecter;
 	
-	/**
-	 * assign a new id when a client connected
-	 * @return new id
-	 */
-	public static String assginId(){
-		for( int i = 1 ; ; i++){
-			boolean flag = false;
-			for(SessionThread sessionThread: SessionThread.sessionThreads){
-				String id = sessionThread.id;
-				if(id.substring(0, 5).equals("guest")){
-					if(id.substring(5, id.length()).equals("" + i)){
-						flag = true;
-						break;
-					}
-				}
-			}
-			
-			if(flag == false){
-				return "guest" + i;
-			}
-		}
-	}
 	
-	/**
-	 * find a session thread by id
-	 * @param  id session thread id
-	 * @return
-	 */
-	public static SessionThread findById(String id){
-		for(SessionThread sessionThread: SessionThread.sessionThreads){
-			if(sessionThread.id.equals(id)){
-				return sessionThread;
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * is a new id valid
-	 * @param  id session thread id
-	 * @return
-	 */
-	public static boolean isIdValid(String id){
-		if(SessionThread.findById(id) != null){
-			return false;
-		}
-		
-		if(id.length() < 3 || id.length() > 16 || !id.matches("[A-Za-z0-9]+") || id.substring(0,1).matches("[0-9]+")){
-			return false;
-		}else{
-			return true;
-		}
-	}
-	
-	/**
-	 * customized socket instance
-	 */
 	public MySocket socket;
-	
-	/**
-	 * the room this user is in
-	 */
-	public Room room;
-	
-	/**
-	 * session thread id
-	 */
-	public String id;
 	
 	/**
 	 * log instance
@@ -102,16 +31,12 @@ public class SessionThread extends Thread {
 	 * @return
 	 * @throws JSONException 
 	 */
-	public SessionThread(MySocket socket, Room room) throws JSONException{
+	public SessionThread(Connecter connecter, MySocket socket) throws JSONException{
+		this.connecter = connecter;
+		this.connecter.setSessionThread(this);
 		this.socket = socket;
-		this.room = room;
-		this.id = SessionThread.assginId();
 		this.log = new Log();
-		//this.log.write("A new user connected");
 		this.interrupt = false;
-		
-		SessionThread.sessionThreads.add(this);
-		this.room.addThread(this);
 		
 		this.firstResponse();
 		
@@ -122,7 +47,7 @@ public class SessionThread extends Thread {
 		try{
 			while(true){
 				JSONObject recv = null;
-				recv = this.socket.recvMsg();
+				recv = this.connecter.recvMsg();
 				if(recv == null){
 					break;
 				}
@@ -137,29 +62,13 @@ public class SessionThread extends Thread {
 			e.printStackTrace();
 		} finally {
 			try {
-				for(Room room: Room.rooms){
-					if(room.owner == this){
-						room.owner = null;
-					}
-				}
-				
-				for(SessionThread sessionThread: this.room.sessionThreads){
-					sessionThread.socket.sendMsg(Protocol.roomChange(this.id, this.room.id, ""));
-				}
-				SessionThread.sessionThreads.remove(this);
-				this.room.sessionThreads.remove(this);
-				
-				for( int i = 0 ; i <= Room.rooms.size() - 1 ; i ++){
-					Room room = Room.rooms.get(i);
-					if(room.id != "MainHall" && room.owner == null && room.sessionThreads.size() == 0){
-						Room.rooms.remove(i);
-					}
-				}
-				
+				this.connecter.quit();
 				this.socket.end();
-			} catch (IOException e) {
-				e.printStackTrace();
 			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -169,12 +78,12 @@ public class SessionThread extends Thread {
 	 * when a new client connected, server's first response
 	 * @throws JSONException
 	 */
-	private void firstResponse() throws JSONException{
+	public void firstResponse() throws JSONException{
 		//System.out.println(Protocol.roomList());
-		this.socket.sendMsg(Protocol.newIdentity("", this.id));
-		this.socket.sendMsg(Protocol.roomChange(this.id, "", this.room.id));
-		this.socket.sendMsg(Protocol.roomContents(this.room));
-		this.socket.sendMsg(Protocol.roomList());
+		this.connecter.sendMsg(Protocol.newIdentity("", this.connecter.id));
+		this.connecter.sendMsg(Protocol.roomChange(this.connecter.id, "", this.connecter.room.id));
+		this.connecter.sendMsg(Protocol.roomContents(this.connecter.room));
+		this.connecter.sendMsg(Protocol.roomList());
 	}
 	
 	/**
@@ -184,7 +93,7 @@ public class SessionThread extends Thread {
 	 * @throws IOException
 	 */
 	private void handler(JSONObject recv) throws JSONException, IOException{
-		//System.out.println(recv);
+		System.out.println(recv);
 		this.handleIdentityChange(recv);
 		this.handleCreateRoom(recv);
 		this.handleList(recv);
@@ -194,6 +103,8 @@ public class SessionThread extends Thread {
 		this.handleDelete(recv);
 		this.handleQuit(recv);
 		this.handleKick(recv);
+		this.handleRegiter(recv);
+		this.handleLogin(recv);
 	}
 	
 	/**
@@ -204,13 +115,13 @@ public class SessionThread extends Thread {
 	private void handleIdentityChange(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("identitychange")){
 			String identity = recv.getString("identity");
-			if(!SessionThread.isIdValid(identity)){
+			if(!Connecter.isIdValid(identity)){
 				this.log.write("Invalid identity");
-				this.socket.sendMsg(Protocol.newIdentity(this.id, this.id));
+				this.connecter.sendMsg(Protocol.newIdentity(this.connecter.id, this.connecter.id));
 			}
 			else{
-				Server.messages.addLast(Protocol.newIdentity(this.id, identity));	
-				this.id = identity;
+				Server.messages.addLast(Protocol.newIdentity(this.connecter.id, identity));	
+				this.connecter.id = identity;
 			}
 		}
 	}
@@ -226,9 +137,9 @@ public class SessionThread extends Thread {
 			if(!Room.isIdValid(roomId)){
 				this.log.write("invalid identity");
 			}else{
-				Room room = new Room(roomId, this);
+				Room room = this.connecter.createRoom(roomId);
 			}
-			this.socket.sendMsg(Protocol.roomList());
+			this.connecter.sendMsg(Protocol.roomList());
 		}
 	}
 	
@@ -239,7 +150,7 @@ public class SessionThread extends Thread {
 	 */
 	private void handleList(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("list")){
-			this.socket.sendMsg(Protocol.roomList());
+			this.connecter.sendMsg(Protocol.roomList());
 		}
 	}
 	
@@ -252,7 +163,7 @@ public class SessionThread extends Thread {
 		if(recv.getString("type").equals("who")){
 			Room room = Room.findById(recv.getString("roomid"));
 			if(room != null){
-				this.socket.sendMsg(Protocol.roomContents(room));	
+				this.connecter.sendMsg(Protocol.roomContents(room));	
 			}
 		}
 	}
@@ -266,37 +177,32 @@ public class SessionThread extends Thread {
 		if(recv.getString("type").equals("join")){
 			String roomId = recv.getString("roomid");
 			if(Room.findById(roomId) != null){
-				if(roomId.equals(this.room.id)){
-					this.socket.sendMsg(Protocol.roomChange(this.id, this.room.id, this.room.id));
+				if(roomId.equals(this.connecter.room.id)){
+					this.connecter.sendMsg(Protocol.roomChange(this.connecter.id, this.connecter.room.id, this.connecter.room.id));
 					return;
 				}
-				Room room = Room.findById(roomId);
-				if(room.isInBlackList(this)){
-					this.socket.sendMsg(Protocol.roomChange(this.id, this.room.id, this.room.id));
+				Room newRoom = Room.findById(roomId);
+				if(this.connecter.isInBlackList(newRoom)){
+					this.connecter.sendMsg(Protocol.roomChange(this.connecter.id, this.connecter.room.id, this.connecter.room.id));
 					return;
 				}
-				JSONObject roomChange = Protocol.roomChange(this.id, this.room.id, roomId);
-				this.room.pushMsg(roomChange);
-				this.room.removeThread(this);
+				JSONObject roomChange = Protocol.roomChange(this.connecter.id, this.connecter.room.id, roomId);
+				Room previousRoom = this.connecter.room;
+				previousRoom.pushMsg(roomChange);
+				this.connecter.changeRoom(newRoom);
 				
-				/* clear empty room without owner */
-				for( int i = 0 ; i <= Room.rooms.size() - 1 ; i ++){
-					Room toDelete = Room.rooms.get(i);
-					if(toDelete.id != "MainHall" && toDelete.owner == null && toDelete.sessionThreads.size() == 0){
-						Room.rooms.remove(i);
-					}
+				if(previousRoom.id != "MainHall" && previousRoom.isToBeDeleted()){
+					Room.rooms.remove(previousRoom);
 				}
 				
-				this.room = room;
-				this.room.addThread(this);
-				this.room.pushMsg(roomChange);
-				if(this.room.id.equals("MainHall")){
-					this.socket.sendMsg(Protocol.roomContents(this.room));
-					this.socket.sendMsg(Protocol.roomList());
+				newRoom.pushMsg(roomChange);
+				if(newRoom.id.equals("MainHall")){
+					this.connecter.sendMsg(Protocol.roomContents(newRoom));
+					this.connecter.sendMsg(Protocol.roomList());
 				}
 				
 			} else {
-				this.socket.sendMsg(Protocol.roomChange(this.id, this.room.id, this.room.id));
+				this.connecter.sendMsg(Protocol.roomChange(this.connecter.id, this.connecter.room.id, this.connecter.room.id));
 			}
 		}
 	}
@@ -311,15 +217,9 @@ public class SessionThread extends Thread {
 			String roomId = recv.getString("roomid");
 			if(Room.findById(roomId) != null ){
 				Room room = Room.findById(roomId);
-				if(room.owner.id.equals(this.id)){
-					Room mainHall = Room.findById("MainHall");
-					for(SessionThread sessionThread: room.sessionThreads){
-						sessionThread.socket.sendMsg(Protocol.roomChange(sessionThread.id, sessionThread.room.id, "MainHall"));
-						sessionThread.room = mainHall;
-						mainHall.addThread(sessionThread);
-					}
-					Room.rooms.remove(room);
-					this.socket.sendMsg(Protocol.roomList());
+				if(room.owner == this.connecter){
+					this.connecter.deleteRoom(room);
+					this.connecter.sendMsg(Protocol.roomList());
 				}
 			}
 		}
@@ -346,25 +246,16 @@ public class SessionThread extends Thread {
 	private void handleKick(JSONObject recv) throws JSONException, IOException{
 		if(recv.getString("type").equals("kick")){
 			Room room = Room.findById(recv.getString("roomid"));
-			if(room == null || room.owner != this){
-				return;
-			}
-			SessionThread sessionThread = SessionThread.findById(recv.getString("identity"));
-			if(sessionThread == null || sessionThread.room.id != room.id){
+			if(room == null || room.owner != this.connecter){
 				return;
 			}
 			
-			room.sessionThreads.remove(sessionThread);
-			Room mainHall = Room.findById("MainHall");
-			mainHall.addThread(sessionThread);
-			sessionThread.room = mainHall;
+			Connecter connecterToBeKicked = Connecter.findById(recv.getString("identity"));
+			if(connecterToBeKicked == null || connecterToBeKicked.room!= room){
+				return;
+			}
 			
-			room.pushMsg(Protocol.roomChange(sessionThread.id, room.id, "MainHall"));
-			mainHall.pushMsg(Protocol.roomChange(sessionThread.id, room.id, "MainHall"));
-			
-			Calendar c = Calendar.getInstance();
-			c.add(Calendar.SECOND, recv.getInt("time"));
-			room.blackList.add(new Black(sessionThread, c.getTime()));
+			this.connecter.kickUser(room, connecterToBeKicked, recv.getInt("time"));
 		}
 	}
 	
@@ -375,9 +266,38 @@ public class SessionThread extends Thread {
 	 */
 	private void handleMessage(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("message")){
-			this.room.pushMsg(Protocol.message(this.id, recv.getString("content")));
+			this.connecter.room.pushMsg(Protocol.message(this.connecter.id, recv.getString("content")));
 		}
 	}
 	
+	private void handleLogin(JSONObject recv) throws JSONException{
+		if(recv.getString("type").equals("login")){
+			String id = recv.getString("id");
+			String password = recv.getString("password");
+			User user = User.authenticate(id, password);
+			if(user == null){
+				this.connecter.sendMsg(Protocol.newIdentity(this.connecter.id, this.connecter.id));
+			} else{
+				this.connecter.login(user);
+				this.connecter.sendMsg(Protocol.authenticated(this.connecter.id, this.connecter.room.id));
+			}
+		}
+	}
+	
+	private void handleRegiter(JSONObject recv) throws JSONException{
+		if(recv.getString("type").equals("register")){
+			String id = recv.getString("id");
+			String password = recv.getString("password");
+			User user = User.register(id, password);
+			for(User u: UserTable.users){
+				System.out.println(u.id);
+			}
+			if(user != null){
+				this.connecter.sendMsg(Protocol.newUser(user.id));
+			} else {
+				this.connecter.sendMsg(Protocol.newUser(""));
+			}
+		}
+	}
 	
 }

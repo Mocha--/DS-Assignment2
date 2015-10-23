@@ -120,6 +120,21 @@ public class Protocol {
 		kick.put("time", time);
 		kick.put("identity", identity);
 		return kick;
-		
+	}
+	
+	public static JSONObject register(String id, String password) throws JSONException{
+		JSONObject register = new JSONObject();
+		register.put("type", "register");
+		register.put("id", id);
+		register.put("password", password);
+		return register;
+	}
+	
+	public static JSONObject login(String id , String password) throws JSONException{
+		JSONObject login = new JSONObject();
+		login.put("type", "login");
+		login.put("id", id);
+		login.put("password", password);
+		return login;
 	}
 }

@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.net.Socket;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import org.json.JSONException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -15,6 +17,12 @@ public class Client {
 	
 	@Argument(required=true)
 	public String hostname;
+	
+	@Option(name = "-password", usage="password")
+	public String loginPassword;
+	
+	@Option(name = "-id", usage="id")
+	public String loginId;
 	
 	/**
 	 * the room's id where the client stay in
@@ -74,7 +82,12 @@ public class Client {
 		this.id = null;
 		this.isGetFirstResponse = 0;
 		
-		this.socket = new MySocket(new Socket(this.hostname, this.port));
+		System.setProperty("javax.net.ssl.trustStore", "../mochaServerKeyStore");
+		System.setProperty("javax.net.ssl.trustStorePassword","123456");
+		
+		SocketFactory factory= SSLSocketFactory.getDefault();
+		
+		this.socket = new MySocket(factory.createSocket(this.hostname, this.port));
 		this.userInputThread = new UserInputThread(this);
 		this.clientRecvThread = new ClientRecvThread(this);
 		this.interrupt = false;

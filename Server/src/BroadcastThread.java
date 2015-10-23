@@ -33,8 +33,8 @@ public class BroadcastThread extends Thread {
 			if(this.room.messages.size() > 0){
 				JSONObject message = this.room.messages.getFirst();
 				
-				for (SessionThread thread: this.room.sessionThreads) {
-					thread.socket.sendMsg(message);
+				for (Connecter connecter: this.room.connecters) {
+					connecter.sendMsg(message);
 				}
 				
 				this.room.messages.removeFirst();
