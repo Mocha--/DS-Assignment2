@@ -42,6 +42,8 @@ public class Server {
 	 */
 	public static LinkedList<JSONObject> messages = new LinkedList<JSONObject>();
 	
+	public static String secret;
+	
 	/**
 	 * log instance
 	 */
@@ -72,6 +74,7 @@ public class Server {
 		this.log = new Log();
 		Room mainHall = new Room("MainHall", null);
 		
+		loadSecretFromFile("../secret.json");
 		loadUsersFromFile("../users.json");
 		
 		while(true){
@@ -92,6 +95,7 @@ public class Server {
 			content += line;
 			line = br.readLine();
 		}
+		br.close();
 		JSONArray users = new JSONArray(content);
 		for( int i = 0 ; i <= users.length() - 1 ; i++){
 			JSONObject user = new JSONObject(users.get(i).toString());
@@ -99,6 +103,21 @@ public class Server {
 			String password = user.getString("password");
 			User.register(id, password);
 		}
+	}
+	
+	public void loadSecretFromFile(String path) throws JSONException, IOException{
+		File file = new File(path);
+		FileReader fr = new FileReader(file);
+		BufferedReader br = new BufferedReader(fr);
+		String content = "";
+		String line = br.readLine();
+		while(line != null){
+			content += line;
+			line = br.readLine();
+		}
+		br.close();
+		JSONObject secret = new JSONObject(content);
+		Server.secret = secret.getString("secret");
 	}
 	
 	/**

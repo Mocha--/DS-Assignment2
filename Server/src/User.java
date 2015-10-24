@@ -1,10 +1,15 @@
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Calendar;
 import org.json.JSONException;
 
+import com.auth0.jwt.JWTVerifyException;
+
 public class User extends Connecter {
 
-	public static User authenticate(String id, String password){
+	public static User authenticate(String id, String password) throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, IOException, JWTVerifyException{
 		return UserTable.find(id, password);
 	}
 

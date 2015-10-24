@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="/home/mocha/projects/eclipse/Server/lib/org.json.jar"/>
 	<classpathentry kind="lib" path="/home/mocha/projects/eclipse/Server/lib/args4j-2.32.jar"/>
+	<classpathentry kind="lib" path="/home/mocha/projects/eclipse/assignment2/Server/lib/java-jwt-2.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

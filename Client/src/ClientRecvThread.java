@@ -188,8 +188,12 @@ public class ClientRecvThread extends Thread{
 		if(recv.getString("type").equals("authenticated")){
 			String id = recv.getString("id");
 			String roomId = recv.getString("roomId");
-			this.client.id = id;
-			this.client.roomId = roomId;
+			if(id.equals("") && roomId.equals("")){
+				this.log.write("User is currently logined.");
+			} else {
+				this.client.id = id;
+				this.client.roomId = roomId;
+			}
 		}
 	}
 	

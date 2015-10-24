@@ -1,6 +1,12 @@
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.auth0.jwt.JWTVerifyException;
 
 /**
  * thread which is created when a new client connected
@@ -60,6 +66,21 @@ public class SessionThread extends Thread {
 			e.printStackTrace();
 		} catch (JSONException e) {
 			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JWTVerifyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			try {
 				this.connecter.quit();
@@ -91,8 +112,13 @@ public class SessionThread extends Thread {
 	 * @param  recv          message object received
 	 * @throws JSONException 
 	 * @throws IOException
+	 * @throws JWTVerifyException 
+	 * @throws SignatureException 
+	 * @throws IllegalStateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
 	 */
-	private void handler(JSONObject recv) throws JSONException, IOException{
+	private void handler(JSONObject recv) throws JSONException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException{
 		System.out.println(recv);
 		this.handleIdentityChange(recv);
 		this.handleCreateRoom(recv);
@@ -270,14 +296,16 @@ public class SessionThread extends Thread {
 		}
 	}
 	
-	private void handleLogin(JSONObject recv) throws JSONException{
+	private void handleLogin(JSONObject recv) throws JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, IOException, JWTVerifyException{
 		if(recv.getString("type").equals("login")){
 			String id = recv.getString("id");
 			String password = recv.getString("password");
 			User user = User.authenticate(id, password);
 			if(user == null){
 				this.connecter.sendMsg(Protocol.newIdentity(this.connecter.id, this.connecter.id));
-			} else{
+			} else if(Connecter.connecters.contains(user)){
+				this.connecter.sendMsg(Protocol.authenticated("", ""));
+			} else {
 				this.connecter.login(user);
 				this.connecter.sendMsg(Protocol.authenticated(this.connecter.id, this.connecter.room.id));
 			}
