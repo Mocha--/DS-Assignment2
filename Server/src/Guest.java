@@ -7,6 +7,7 @@ public class Guest extends Connecter {
 		super();
 		this.room = Room.findById("MainHall");
 		this.room.addConnecter(this);
+		
 		for( int i = 1 ; ; i++){
 			boolean flag = false;
 			for(Connecter connecter: Connecter.connecters){
@@ -22,6 +23,7 @@ public class Guest extends Connecter {
 				break;
 			}
 		}
+		
 		Connecter.connecters.add(this);
 	}
 	
@@ -59,12 +61,30 @@ public class Guest extends Connecter {
 	}
 	
 	public void login(User user){
+		/**
+		 * clear his owned rooms
+		 */
+		for(Room room: this.ownedRooms){
+			room.owner = null;
+			if(room.isToBeDeleted()){
+				Room.rooms.remove(room);
+			}
+		}
+		this.ownedRooms = null;
+		
 		this.room.removeConnecter(this);
 		Connecter.connecters.remove(this);
 		this.sessionThread.connecter = user;
 		user.setSessionThread(this.sessionThread);
 		user.room.addConnecter(user);
 		Connecter.connecters.add(user);
+	}
+	
+	public void firstResponse() throws JSONException{
+		this.sendMsg(Protocol.newIdentity("", this.id));
+		this.sendMsg(Protocol.roomChange(this.id, "", this.room.id));
+		this.sendMsg(Protocol.roomContents(this.room));
+		this.sendMsg(Protocol.roomList());
 	}
 	
 	

@@ -33,8 +33,10 @@ public class User extends Connecter {
 	
 	public void deleteRoom(Room room) throws JSONException{
 		Room mainHall = Room.findById("MainHall");
-		for(int i = 0 ; i <= room.connecters.size() - 1 ; i++){
+		System.out.println(room.id + " size is " + room.connecters.size());
+		for(int i = 0 ; room.connecters.size() > 0 ; ){
 			Connecter connecter = room.connecters.get(i);
+			System.out.println(connecter.id);
 			connecter.sendMsg(Protocol.roomChange(connecter.id, connecter.room.id, "MainHall"));
 			connecter.changeRoom(mainHall);
 		}
@@ -78,6 +80,13 @@ public class User extends Connecter {
 		user.setSessionThread(this.sessionThread);
 		user.room.addConnecter(user);
 		Connecter.connecters.add(user);
+	}
+	
+	public void firstResponse() throws JSONException{
+		this.sendMsg(Protocol.authenticated(this.id, this.room.id));
+		this.sendMsg(Protocol.roomChange(this.id, "", this.room.id));
+		this.sendMsg(Protocol.roomContents(this.room));
+		this.sendMsg(Protocol.roomList());
 	}
 
 }

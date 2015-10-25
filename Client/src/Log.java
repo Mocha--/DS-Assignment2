@@ -8,6 +8,10 @@ public class Log {
 	}
 	
 	public void write(String s){
-		System.out.println(s);
+		System.out.println("[System] " + s);
+	}
+	
+	public void msg(String id, String msg){
+		System.out.println(id + " : " + msg);
 	}
 }

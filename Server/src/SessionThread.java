@@ -30,23 +30,66 @@ public class SessionThread extends Thread {
 	 */
 	private boolean interrupt;
 	
+	private boolean isToStart;
+	
 	/**
 	 * constructor
 	 * @param  socket        
 	 * @param  room          
 	 * @return
 	 * @throws JSONException 
+	 * @throws IOException 
+	 * @throws JWTVerifyException 
+	 * @throws SignatureException 
+	 * @throws IllegalStateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
 	 */
-	public SessionThread(Connecter connecter, MySocket socket) throws JSONException{
-		this.connecter = connecter;
-		this.connecter.setSessionThread(this);
+	public SessionThread(MySocket socket) throws JSONException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException{
 		this.socket = socket;
 		this.log = new Log();
 		this.interrupt = false;
+		this.isToStart = false;
 		
-		this.firstResponse();
+		this.recvAuthentication();
+		//this.firstResponse();
+		if(this.isToStart == true){
+			this.start();	
+		}
 		
-		this.start();
+	}
+	
+	private void recvAuthentication() throws IOException, JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException{
+		
+		while(true){
+			JSONObject recv = null;
+			recv = this.socket.recvMsg();
+			if(recv.getString("type").equals("login")){
+				String id = recv.getString("id");
+				String password = recv.getString("password");
+				if( id.equals("") && password.equals("")){
+					this.connecter = new Guest();
+					this.connecter.setSessionThread(this);
+					this.connecter.firstResponse();
+					this.isToStart = true;
+				} else {
+					User user = User.authenticate(id, password);
+					if( user == null ){
+						this.socket.sendMsg(Protocol.authenticated("none", ""));
+					} else if( Connecter.connecters.contains(user) ){
+						this.socket.sendMsg(Protocol.authenticated("", ""));
+					} else {
+						this.connecter = user;
+						this.connecter.setSessionThread(this);
+						this.connecter.room.addConnecter(this.connecter);
+						Connecter.connecters.add(this.connecter);
+						this.connecter.firstResponse();
+						this.isToStart = true;
+					}
+				}
+				return;
+			}
+		}
 	}
 	
 	public void run(){
@@ -67,19 +110,14 @@ public class SessionThread extends Thread {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SignatureException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (JWTVerifyException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
@@ -302,7 +340,7 @@ public class SessionThread extends Thread {
 			String password = recv.getString("password");
 			User user = User.authenticate(id, password);
 			if(user == null){
-				this.connecter.sendMsg(Protocol.newIdentity(this.connecter.id, this.connecter.id));
+				this.connecter.sendMsg(Protocol.authenticated("none", ""));
 			} else if(Connecter.connecters.contains(user)){
 				this.connecter.sendMsg(Protocol.authenticated("", ""));
 			} else {
@@ -317,9 +355,6 @@ public class SessionThread extends Thread {
 			String id = recv.getString("id");
 			String password = recv.getString("password");
 			User user = User.register(id, password);
-			for(User u: UserTable.users){
-				System.out.println(u.id);
-			}
 			if(user != null){
 				this.connecter.sendMsg(Protocol.newUser(user.id));
 			} else {

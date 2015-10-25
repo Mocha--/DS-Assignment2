@@ -5,6 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.LinkedList;
 
 import javax.net.ServerSocketFactory;
@@ -17,6 +20,8 @@ import org.json.JSONObject;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import com.auth0.jwt.JWTVerifyException;
 
 public class Server {
 	
@@ -55,8 +60,13 @@ public class Server {
 	 * @return               
 	 * @throws IOException   
 	 * @throws JSONException
+	 * @throws JWTVerifyException 
+	 * @throws SignatureException 
+	 * @throws IllegalStateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
 	 */
-	public Server(String[] args) throws IOException, JSONException{
+	public Server(String[] args) throws IOException, JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException{
 		
 		CmdLineParser parser = new CmdLineParser(this);
 		
@@ -80,8 +90,7 @@ public class Server {
 		while(true){
 			this.log.write("waiting for connections");
 			Socket socket = this.serverSocket.accept();
-			Connecter connecter = new Guest();
-			SessionThread sessionThread = new SessionThread(connecter, new MySocket(socket));
+			SessionThread sessionThread = new SessionThread(new MySocket(socket));
 		}
 	}
 	
@@ -125,8 +134,13 @@ public class Server {
 	 * @param  args          
 	 * @throws IOException  
 	 * @throws JSONException
+	 * @throws JWTVerifyException 
+	 * @throws SignatureException 
+	 * @throws IllegalStateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
 	 */
-	public static void main(String[] args) throws IOException, JSONException {
+	public static void main(String[] args) throws IOException, JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException {
 		
 		Server server = new Server(args);
 	}

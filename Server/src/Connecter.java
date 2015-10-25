@@ -108,5 +108,7 @@ public abstract class Connecter {
 	
 	public abstract void login(User user);
 	
+	public abstract void firstResponse() throws JSONException;
+	
 	
 }

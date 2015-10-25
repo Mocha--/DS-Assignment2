@@ -71,6 +71,7 @@ public class ClientRecvThread extends Thread{
 		this.handleMessage(recv);
 		this.handleRoomContents(recv);	
 		this.handleAuthenticated(recv);
+		this.handleNewUser(recv);
 		
 		if(this.client.isGetFirstResponse < 4){
 			this.client.isGetFirstResponse += 1;
@@ -180,7 +181,7 @@ public class ClientRecvThread extends Thread{
 	private void handleMessage(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("message")){
 			System.out.println(recv);
-			this.log.write(recv.getString("identity") + " : " + recv.getString("content"));
+			this.log.msg(recv.getString("identity"), recv.getString("content"));
 		}
 	}
 	
@@ -190,9 +191,22 @@ public class ClientRecvThread extends Thread{
 			String roomId = recv.getString("roomId");
 			if(id.equals("") && roomId.equals("")){
 				this.log.write("User is currently logined.");
+			} else if (id.equals("none") && roomId.equals("")){
+				this.log.write("User not existing or Wrong password");
 			} else {
 				this.client.id = id;
 				this.client.roomId = roomId;
+			}
+		}
+	}
+	
+	private void handleNewUser(JSONObject recv) throws JSONException{
+		if(recv.getString("type").equals("newUser")){
+			String id = recv.getString("id");
+			if(id.equals("")){
+				this.log.write("The username has already been used.");
+			} else {
+				this.log.write("User " + id + " is registered successfully.");
 			}
 		}
 	}

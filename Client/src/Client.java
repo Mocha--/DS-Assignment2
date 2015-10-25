@@ -3,6 +3,7 @@ import java.net.Socket;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -59,6 +60,8 @@ public class Client {
 	 */
 	public MySocket socket;
 	
+	private Log log;
+	
 	/**
 	 * constructor
 	 * @param  args          
@@ -67,6 +70,8 @@ public class Client {
 	 * @throws JSONException
 	 */
 	public Client(String[] args) throws IOException, JSONException{
+		
+		this.log = new Log();
 		
 		CmdLineParser parser = new CmdLineParser(this);
 		
@@ -81,6 +86,7 @@ public class Client {
 		this.roomId = null;
 		this.id = null;
 		this.isGetFirstResponse = 0;
+		this.interrupt = false;
 		
 		System.setProperty("javax.net.ssl.trustStore", "../mochaServerKeyStore");
 		System.setProperty("javax.net.ssl.trustStorePassword","123456");
@@ -88,9 +94,45 @@ public class Client {
 		SocketFactory factory= SSLSocketFactory.getDefault();
 		
 		this.socket = new MySocket(factory.createSocket(this.hostname, this.port));
+		this.login(this.loginId, this.loginPassword);
 		this.userInputThread = new UserInputThread(this);
 		this.clientRecvThread = new ClientRecvThread(this);
-		this.interrupt = false;
+	}
+	
+	public void login(String loginId, String password) throws JSONException, IOException{
+		if(loginId == null){
+			loginId = "";
+		}
+		if(password == null){
+			password = "";
+		}
+		
+		this.socket.sendMsg(Protocol.login(loginId, password));
+		if( !loginId.equals("") && !password.equals("")){
+			while(true){
+				JSONObject recv = null;
+				recv = this.socket.recvMsg();
+				if(recv.getString("type").equals("authenticated")){
+					String id = recv.getString("id");
+					String roomId = recv.getString("roomId");
+					if(id.equals("") && roomId.equals("")){
+						this.log.write("User is currently logined.");
+						this.interrupt = true;
+						System.exit(0);
+					} else if (id.equals("none") && roomId.equals("")){
+						this.log.write("User not existing or Wrong password");
+						this.interrupt = true;
+						System.exit(0);
+					} else {
+						this.id = id;
+						this.roomId = roomId;
+						this.isGetFirstResponse += 1;
+					}
+					return;
+				}
+			}
+		}
+		
 	}
 	
 	public static void main(String[] args) throws IOException, JSONException{
