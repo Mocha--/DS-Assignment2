@@ -76,7 +76,14 @@ public class Server {
 			e.printStackTrace();
 		}
 		
-		System.setProperty("javax.net.ssl.keyStore", "../mochaServerKeyStore");
+		/**
+		 * set key store for ssl
+		 */
+		// for script launching
+//		System.setProperty("javax.net.ssl.keyStore", "../mochaServerKeyStore");
+//		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+		
+		System.setProperty("javax.net.ssl.keyStore", "mochaServerKeyStore");
 		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 		
 		ServerSocketFactory factory = SSLServerSocketFactory.getDefault();
@@ -84,8 +91,21 @@ public class Server {
 		this.log = new Log();
 		Room mainHall = new Room("MainHall", null);
 		
-		loadSecretFromFile("../secret.json");
-		loadUsersFromFile("../users.json");
+		/**
+		 * load secret file
+		 */
+		// for script
+		//loadSecretFromFile("../secret.json");
+		// for jar
+		loadSecretFromFile("secret.json");
+
+		/**
+		 * pre-add some users to system
+		 */
+		// for script
+		//loadUsersFromFile("../users.json");
+		// for jar
+		loadUsersFromFile("users.json");
 		
 		while(true){
 			this.log.write("waiting for connections");
@@ -94,6 +114,12 @@ public class Server {
 		}
 	}
 	
+	/**
+	 * load users from file
+	 * @param  path          file path
+	 * @throws IOException   
+	 * @throws JSONException 
+	 */
 	public void loadUsersFromFile(String path) throws IOException, JSONException{
 		File file = new File(path);
 		FileReader fr = new FileReader(file);
@@ -114,6 +140,12 @@ public class Server {
 		}
 	}
 	
+	/**
+	 * load secret from file
+	 * @param  path          file path
+	 * @throws JSONException 
+	 * @throws IOException   
+	 */
 	public void loadSecretFromFile(String path) throws JSONException, IOException{
 		File file = new File(path);
 		FileReader fr = new FileReader(file);

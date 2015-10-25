@@ -29,9 +29,9 @@ public class MySocket {
 	
 	/**
 	 * constructor
-	 * @param  socket      [description]
-	 * @return             [description]
-	 * @throws IOException [description]
+	 * @param  socket      
+	 * @return             
+	 * @throws IOException 
 	 */
 	public MySocket(Socket socket) throws IOException{
 		this.socket = socket;
@@ -41,7 +41,7 @@ public class MySocket {
 	
 	/**
 	 * end this socket
-	 * @throws IOException [description]
+	 * @throws IOException 
 	 */
 	public void end() throws IOException {
 		this.socket.close();

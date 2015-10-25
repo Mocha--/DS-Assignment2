@@ -63,7 +63,7 @@ public class ClientRecvThread extends Thread{
 	 * @throws IOException
 	 */
 	private void handler(JSONObject recv) throws JSONException, IOException{
-		System.out.println(recv);
+		//System.out.println(recv);
 		
 		this.handleNewIdentity(recv);
 		this.handlerRoomList(recv);

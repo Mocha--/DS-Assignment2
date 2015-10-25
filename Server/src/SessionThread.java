@@ -17,7 +17,9 @@ public class SessionThread extends Thread {
 	 */
 	public Connecter connecter;
 	
-	
+	/**
+	 * socket
+	 */
 	public MySocket socket;
 	
 	/**
@@ -30,6 +32,9 @@ public class SessionThread extends Thread {
 	 */
 	private boolean interrupt;
 	
+	/**
+	 * if to start this thread
+	 */
 	private boolean isToStart;
 	
 	/**
@@ -52,13 +57,22 @@ public class SessionThread extends Thread {
 		this.isToStart = false;
 		
 		this.recvAuthentication();
-		//this.firstResponse();
 		if(this.isToStart == true){
 			this.start();	
 		}
 		
 	}
 	
+	/**
+	 * receive the very beginning authentication info
+	 * @throws IOException              [description]
+	 * @throws JSONException            [description]
+	 * @throws InvalidKeyException      [description]
+	 * @throws NoSuchAlgorithmException [description]
+	 * @throws IllegalStateException    [description]
+	 * @throws SignatureException       [description]
+	 * @throws JWTVerifyException       [description]
+	 */
 	private void recvAuthentication() throws IOException, JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, JWTVerifyException{
 		
 		while(true){
@@ -334,6 +348,17 @@ public class SessionThread extends Thread {
 		}
 	}
 	
+	/**
+	 * when the received message type is login, handle this message.
+	 * @param  recv                     [description]
+	 * @throws JSONException            [description]
+	 * @throws InvalidKeyException      [description]
+	 * @throws NoSuchAlgorithmException [description]
+	 * @throws IllegalStateException    [description]
+	 * @throws SignatureException       [description]
+	 * @throws IOException              [description]
+	 * @throws JWTVerifyException       [description]
+	 */
 	private void handleLogin(JSONObject recv) throws JSONException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, IOException, JWTVerifyException{
 		if(recv.getString("type").equals("login")){
 			String id = recv.getString("id");
@@ -350,6 +375,11 @@ public class SessionThread extends Thread {
 		}
 	}
 	
+	/**
+	 * when received message is register, handle this message.
+	 * @param  recv          [description]
+	 * @throws JSONException [description]
+	 */
 	private void handleRegiter(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("register")){
 			String id = recv.getString("id");

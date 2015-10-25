@@ -1,8 +1,16 @@
 import java.io.IOException;
 import org.json.JSONException;
 
+/**
+ * guest is authenticated user
+ * id is assigned automatically
+ */
 public class Guest extends Connecter {
 	
+	/**
+	 * constructor
+	 * @return 
+	 */
 	public Guest(){
 		super();
 		this.room = Room.findById("MainHall");
@@ -27,14 +35,29 @@ public class Guest extends Connecter {
 		Connecter.connecters.add(this);
 	}
 	
+	/**
+	 * delete room
+	 * @param room
+	 */
 	public void deleteRoom(Room room){
 		System.out.println(this.id + " is a guset, who can not delete rooms");
 	}
 	
+	/**
+	 * kick user
+	 * @param room      
+	 * @param connecter
+	 * @param time      
+	 */
 	public void kickUser(Room room, Connecter connecter, int time){
 		System.out.println(this.id + " is a guest, who can not kick users");
 	}
 	
+	/**
+	 * quit
+	 * @throws JSONException 
+	 * @throws IOException   
+	 */
 	public void quit() throws JSONException, IOException{
 		for(Room room: this.ownedRooms){
 			room.owner = null;
@@ -60,6 +83,10 @@ public class Guest extends Connecter {
 		}
 	}
 	
+	/**
+	 * login as an authenticated user
+	 * @param user [description]
+	 */
 	public void login(User user){
 		/**
 		 * clear his owned rooms
@@ -80,6 +107,10 @@ public class Guest extends Connecter {
 		Connecter.connecters.add(user);
 	}
 	
+	/**
+	 * first response
+	 * @throws JSONException [description]
+	 */
 	public void firstResponse() throws JSONException{
 		this.sendMsg(Protocol.newIdentity("", this.id));
 		this.sendMsg(Protocol.roomChange(this.id, "", this.room.id));

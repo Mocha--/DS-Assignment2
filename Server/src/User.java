@@ -7,12 +7,33 @@ import org.json.JSONException;
 
 import com.auth0.jwt.JWTVerifyException;
 
+/**
+ * user is authenticated user
+ */
 public class User extends Connecter {
 
+	/**
+	 * verify id and password
+	 * @param  id                       [description]
+	 * @param  password                 [description]
+	 * @return                          [description]
+	 * @throws InvalidKeyException      [description]
+	 * @throws NoSuchAlgorithmException [description]
+	 * @throws IllegalStateException    [description]
+	 * @throws SignatureException       [description]
+	 * @throws IOException              [description]
+	 * @throws JWTVerifyException       [description]
+	 */
 	public static User authenticate(String id, String password) throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, SignatureException, IOException, JWTVerifyException{
 		return UserTable.find(id, password);
 	}
 
+	/**
+	 * register a new user
+	 * @param  id       id
+	 * @param  password id
+	 * @return          new user
+	 */
 	public static User register(String id, String password){
 		if(UserTable.findById(id) != null){
 			return null;
@@ -22,8 +43,16 @@ public class User extends Connecter {
 		}
 	}
 
+	/**
+	 * password
+	 */
 	public String password;
 	
+	/**
+	 * constructor
+	 * @param  id       id
+	 * @param  password password
+	 */
 	public User(String id, String password){
 		super();
 		this.id = id;

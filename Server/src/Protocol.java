@@ -99,6 +99,12 @@ public class Protocol {
 		return message;
 	}
 	
+	/**
+	 * new user
+	 * @param  id            identity
+	 * @return               json object
+	 * @throws JSONException
+	 */
 	public static JSONObject newUser(String id) throws JSONException{
 		JSONObject newUser = new JSONObject();
 		newUser.put("type", "newUser");
@@ -107,6 +113,13 @@ public class Protocol {
 		return newUser;
 	}
 	
+	/**
+	 * authenticated
+	 * @param  id            identity
+	 * @param  roomId        room id
+	 * @return               json object
+	 * @throws JSONException
+	 */
 	public static JSONObject authenticated(String id, String roomId) throws JSONException{
 		JSONObject authenticated = new JSONObject();
 		authenticated.put("type", "authenticated");

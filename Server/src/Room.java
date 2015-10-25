@@ -120,6 +120,10 @@ public class Room {
 		this.messages.addLast(msg);
 	}
 	
+	/**
+	 * if meet the requirement of being deleted
+	 * @return [description]
+	 */
 	public boolean isToBeDeleted(){
 		if(this.owner == null && this.connecters.size() == 0){
 			return true;

@@ -16,12 +16,21 @@ public class Client {
 	@Option(name="-p", usage="port")
 	public int port = 4444;
 	
+	/**
+	 * host name
+	 */
 	@Argument(required=true)
 	public String hostname;
 	
+	/**
+	 * password
+	 */
 	@Option(name = "-password", usage="password")
 	public String loginPassword;
-	
+
+	/**
+	 * login id
+	 */
 	@Option(name = "-id", usage="id")
 	public String loginId;
 	
@@ -88,8 +97,16 @@ public class Client {
 		this.isGetFirstResponse = 0;
 		this.interrupt = false;
 		
-		System.setProperty("javax.net.ssl.trustStore", "../mochaServerKeyStore");
+		/**
+		 * for sll key store config
+		 */
+//		System.setProperty("javax.net.ssl.trustStore", "../mochaServerKeyStore");
+//		System.setProperty("javax.net.ssl.trustStorePassword","123456");
+		
+		// for jar
+		System.setProperty("javax.net.ssl.trustStore", "mochaServerKeyStore");
 		System.setProperty("javax.net.ssl.trustStorePassword","123456");
+		
 		
 		SocketFactory factory= SSLSocketFactory.getDefault();
 		
@@ -99,6 +116,13 @@ public class Client {
 		this.clientRecvThread = new ClientRecvThread(this);
 	}
 	
+	/**
+	 * send login infomation. If as guest, send id and passwrod with empty string
+	 * @param  loginId       [description]
+	 * @param  password      [description]
+	 * @throws JSONException [description]
+	 * @throws IOException   [description]
+	 */
 	public void login(String loginId, String password) throws JSONException, IOException{
 		if(loginId == null){
 			loginId = "";
