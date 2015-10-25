@@ -180,7 +180,6 @@ public class ClientRecvThread extends Thread{
 	 */
 	private void handleMessage(JSONObject recv) throws JSONException{
 		if(recv.getString("type").equals("message")){
-			System.out.println(recv);
 			this.log.msg(recv.getString("identity"), recv.getString("content"));
 		}
 	}
