@@ -1,0 +1,11 @@
+Jar files are in server and client directory.
+
+In server directory,
+Run java -jar chatserver.jar [-p port]
+
+In client directory,
+If a guest:
+Run java -jar chatclient.jar hostname [-p port]
+
+If an authenticated user:
+Run java -jar chatclient.jar hostname [-p port -id userId -password userPassword] 
